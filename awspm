@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+
+# Python standard library modules
+import argparse
+import os
+import signal
+import sys
+
+# Local application modules
+import menus.main
+import util
+
+# Set up the application arguments
+default_config_path = os.path.join(os.path.expanduser('~'), '.awspm.json')
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    '-c',
+    '--config',
+    action='store',
+    default=default_config_path,
+    help='Path to config file (defaults to {0:s})'.format(default_config_path),
+)
+args = parser.parse_args()
+
+# Load the application config
+config_path = args.config
+try:
+    config = util.Config(config_path)
+except util.ConfigError as e:
+    sys.stderr.write('Error loading config: {0:s}\n'.format(e))
+    sys.exit(1)
+
+# Register the SIGINT handler function for cleaning up the terminal on interrupt
+signal.signal(signal.SIGINT, util.exit_cleanup)
+
+# Run the application
+menus.main.Menu(config)
